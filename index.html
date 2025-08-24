@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Stok - Angkringan Kembang</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(to right, #1b5e20, #2e7d32);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            border: 3px solid #e74c3c;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .logo i {
+            font-size: 25px;
+            color: #e74c3c;
+        }
+        
+        .header-content {
+            flex: 1;
+        }
+        
+        .header-content h1 {
+            font-size: 1.8rem;
+            margin-bottom: 3px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .current-time {
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: auto;
+        }
+        
+        /* Setup Section - Initially Hidden */
+        .setup-section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            display: none;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .setup-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2e7d32;
+            color: #2c3e50;
+        }
+        
+        .setup-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            font-size: 0.9rem;
+        }
+        
+        .tab.active {
+            background: #2e7d32;
+            color: white;
+            border-color: #2e7d32;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .setup-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #2e7d32;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            background: #2e7d32;
+            color: white;
+            text-align: center;
+            line-height: 22px;
+            border-radius: 50%;
+            margin-right: 8px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .step h3 {
+            display: inline-block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        
+        .step p {
+            font-size: 0.85rem;
+        }
+        
+        .config-form {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.85rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 7px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .btn {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #1b5e20;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            display: grid;
+            grid-template-columns: 7fr 5fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #2e7d32;
+            color: #2c3e50;
+        }
+        
+        /* Menu Update Section */
+        .menu-update {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 5px;
+            border-left: 3px solid #2ecc71;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            min-height: auto;
+            background: #f0f9f0;
+        }
+        
+        .menu-item.tersisa {
+            background: #fffbf0;
+            border-left-color: #f39c12;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .menu-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            flex: 2;
+            display: flex;
+            align-items: center;
+        }
+        
+        .menu-status {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            margin-left: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .status-ready {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .status-tersisa {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        .status-habis {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .stock-amount {
+            font-weight: bold;
+            margin-left: 6px;
+            font-size: 0.85rem;
+        }
+        
+        /* Video Section */
+        .video-section {
+            margin-top: 15px;
+        }
+        
+        .video-container {
+            background: #2c3e50;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Menu Habis Section */
+        .menu-habis {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .empty-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .menu-item.habis {
+            background: #fef0f0;
+            border-left-color: #e74c3c;
+        }
+        
+        .empty-menu {
+            text-align: center;
+            padding: 15px 0;
+            color: #7f8c8d;
+        }
+        
+        .empty-menu i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #bdc3c7;
+        }
+        
+        .empty-menu h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .empty-menu p {
+            font-size: 0.9rem;
+        }
+        
+        /* Footer Styles */
+        footer {
+            background: linear-gradient(to right, #1b5e20, #2e7d32);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer-left span {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .footer-right {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .contact-item i {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        
+        /* Animation for low stock items */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .setup-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .setup-tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                margin-bottom: 5px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
+            
+            footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .footer-left {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .menu-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 8px;
+            }
+            
+            .menu-status {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .header-content h1 {
+                font-size: 1.5rem;
+            }
+            
+            .menu-name {
+                font-size: 0.85rem;
+            }
+            
+            header {
+                flex-wrap: wrap;
+            }
+            
+            .current-time {
+                margin-top: 8px;
+                margin-left: 0;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-right: 10px;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo" id="settings-logo">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="header-content">
+                <h1>Angkringan Kembang</h1>
+                <p>Monitoring Stok Menu Real-time</p>
+            </div>
+            <div class="current-time" id="current-time"></div>
+        </header>
+        
+        <div class="setup-section" id="setup-section">
+            <div class="close-btn" id="close-btn">X</div>
+            <h2>Pengaturan Sistem</h2>
+            
+            <div class="setup-tabs">
+                <div class="tab active" data-tab="sheets">Google Sheets</div>
+                <div class="tab" data-tab="logo">Logo Restoran</div>
+                <div class="tab" data-tab="video">Video Promosi</div>
+            </div>
+            
+            <div class="tab-content active" id="sheets-tab">
+                <div class="setup-steps">
+                    <div class="step">
+                        <h3><span class="step-number">1</span>Buat Google Sheet</h3>
+                        <p>Buat spreadsheet baru di Google Sheets dengan kolom: <strong>Nama Menu, Stok, Status</strong></p>
+                        <p><strong>Format Status:</strong> "Ready", "Tersisa", atau "Habis"</p>
+                    </div>
+                    <div class="step">
+                        <h3><span class="step-number">2</span>Publikasikan Sheet</h3>
+                        <p>Pilih <strong>File > Share > Publish to web</strong>, pilih format CSV dan klik Publish</p>
+                    </div>
+                    <div class="step">
+                        <h3><span class="step-number">3</span>Salin URL</h3>
+                        <p>Salin URL yang dihasilkan dan tempel di form berikut</p>
+                    </div>
+                </div>
+                
+                <div class="config-form">
+                    <div class="form-group">
+                        <label for="sheet-url">Google Sheets URL (CSV):</label>
+                        <input type="text" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
+                    </div>
+                    <div class="form-group">
+                        <label for="update-interval">Interval Pembaruan (detik):</label>
+                        <input type="number" id="update-interval" value="30" min="10">
+                    </div>
+                    <button class="btn" id="save-sheets">Simpan Konfigurasi</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="logo-tab">
+                <div class="config-form">
+                    <div class="form-group">
+                        <label for="logo-url">URL Logo:</label>
+                        <input type="text" id="logo-url" placeholder="https://example.com/logo.png">
+                    </div>
+                    <div class="form-group">
+                        <label for="logo-upload">Atau Unggah Logo:</label>
+                        <input type="file" id="logo-upload" accept="image/*">
+                    </div>
+                    <button class="btn" id="save-logo">Simpan Logo</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="video-tab">
+                <div class="config-form">
+                    <div class="form-group">
+                        <label for="video-url">URL Video YouTube:</label>
+                        <input type="text" id="video-url" placeholder="https://www.youtube.com/embed/...">
+                        <small>Gunakan URL embed dari YouTube (contoh: https://www.youtube.com/embed/VIDEO_ID)</small>
+                    </div>
+                    <button class="btn" id="save-video">Simpan Video</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="left-column">
+                <div class="menu-update">
+                    <h2 class="section-title">Menu Update</h2>
+                    <div class="menu-list" id="menu-list">
+                        <div class="menu-item">
+                            <div class="menu-name">Nasi Goreng Spesial</div>
+                            <div class="menu-status">
+                                <span class="status-ready">Ready</span>
+                            </div>
+                        </div>
+                        <div class="menu-item tersisa">
+                            <div class="menu-name">Sate Ayam</div>
+                            <div class="menu-status">
+                                <span class="status-tersisa">Tersisa</span>
+                                <span class="stock-amount">3 porsi</span>
+                            </div>
+                        </div>
+                        <div class="menu-item tersisa pulse">
+                            <div class="menu-name">Es Jeruk</div>
+                            <div class="menu-status">
+                                <span class="status-tersisa">Tersisa</span>
+                                <span class="stock-amount">1 porsi</span>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-name">Teh Manis</div>
+                            <div class="menu-status">
+                                <span class="status-ready">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="video-section">
+                        <h3 class="section-title">Video Promosi</h3>
+                        <div class="video-container">
+                            <iframe src="https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1&mute=1&loop=1&playlist=6stlCkUDG_s" allow="autoplay" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="menu-habis">
+                    <h2 class="section-title">Menu Habis</h2>
+                    <div class="empty-menu-list" id="empty-menu-list">
+                        <div class="menu-item habis">
+                            <div class="menu-name">Ayam Bakar Madu</div>
+                            <div class="menu-status">
+                                <span class="status-habis">Habis</span>
+                            </div>
+                        </div>
+                        <div class="menu-item habis">
+                            <div class="menu-name">Jus Alpukat</div>
+                            <div class="menu-status">
+                                <span class="status-habis">Habis</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <div class="footer-left">
+                <span>Reservasi dan pemesanan, Hubungi:</span>
+                <div class="contact-item">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>088216562558</span>
+                </div>
+            </div>
+            <div class="footer-right">
+                © 2023 Angkringan Kembang
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            sheetUrl: '',
+            updateInterval: 30,
+            logoUrl: '',
+            videoUrl: 'https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1&mute=1&loop=1&playlist=6stlCkUDG_s'
+        };
+        
+        // DOM Elements
+        const settingsLogo = document.getElementById('settings-logo');
+        const setupSection = document.getElementById('setup-section');
+        const closeBtn = document.getElementById('close-btn');
+        const saveSheetsBtn = document.getElementById('save-sheets');
+        const saveLogoBtn = document.getElementById('save-logo');
+        const saveVideoBtn = document.getElementById('save-video');
+        const tabs = document.querySelectorAll('.tab');
+        const currentTimeElement = document.getElementById('current-time');
+        
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            currentTimeElement.textContent = now.toLocaleDateString('id-ID', options);
+        }
+        
+        // Update time immediately and then every second
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Toggle settings visibility
+        function toggleSettings() {
+            if (setupSection.style.display === 'block') {
+                setupSection.style.display = 'none';
+            } else {
+                setupSection.style.display = 'block';
+            }
+        }
+        
+        // Close settings
+        function closeSettings() {
+            setupSection.style.display = 'none';
+        }
+        
+        // Switch tabs
+        function switchTab(e) {
+            const tabId = e.target.getAttribute('data-tab');
+            
+            // Update active tab
+            tabs.forEach(tab => tab.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Show active tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        }
+        
+        // Load configuration from localStorage if available
+        function loadConfig() {
+            const savedConfig = localStorage.getItem('menuMonitorConfig');
+            if (savedConfig) {
+                config = JSON.parse(savedConfig);
+                document.getElementById('sheet-url').value = config.sheetUrl;
+                document.getElementById('update-interval').value = config.updateInterval;
+                document.getElementById('logo-url').value = config.logoUrl;
+                document.getElementById('video-url').value = config.videoUrl;
+                
+                // Apply logo if exists
+                if (config.logoUrl) {
+                    const logoElement = document.getElementById('settings-logo');
+                    logoElement.innerHTML = '';
+                    const logoImg = document.createElement('img');
+                    logoImg.src = config.logoUrl;
+                    logoImg.alt = 'Logo Restoran';
+                    logoElement.appendChild(logoImg);
+                }
+                
+                // Apply video if exists
+                if (config.videoUrl) {
+                    const videoIframe = document.querySelector('.video-container iframe');
+                    videoIframe.src = config.videoUrl;
+                }
+                
+                // If URL is set, start fetching data
+                if (config.sheetUrl) {
+                    fetchData();
+                    // Set up interval for updates
+                    setInterval(fetchData, config.updateInterval * 1000);
+                }
+            }
+        }
+        
+        // Save configuration to localStorage
+        function saveSheetsConfig() {
+            config.sheetUrl = document.getElementById('sheet-url').value;
+            config.updateInterval = parseInt(document.getElementById('update-interval').value);
+            
+            localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
+            alert('Konfigurasi Google Sheets berhasil disimpan!');
+            
+            // Start fetching data
+            fetchData();
+            
+            // Set up interval for updates
+            setInterval(fetchData, config.updateInterval * 1000);
+        }
+        
+        function saveLogoConfig() {
+            const logoUrl = document.getElementById('logo-url').value;
+            const logoUpload = document.getElementById('logo-upload').files[0];
+            
+            if (logoUpload) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    config.logoUrl = e.target.result;
+                    localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
+                    
+                    // Update logo
+                    const logoElement = document.getElementById('settings-logo');
+                    logoElement.innerHTML = '';
+                    const logoImg = document.createElement('img');
+                    logoImg.src = e.target.result;
+                    logoImg.alt = 'Logo Restoran';
+                    logoElement.appendChild(logoImg);
+                    
+                    alert('Logo berhasil diubah!');
+                };
+                reader.readAsDataURL(logoUpload);
+            } else if (logoUrl) {
+                config.logoUrl = logoUrl;
+                localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
+                
+                // Update logo
+                const logoElement = document.getElementById('settings-logo');
+                logoElement.innerHTML = '';
+                const logoImg = document.createElement('img');
+                logoImg.src = logoUrl;
+                logoImg.alt = 'Logo Restoran';
+                logoElement.appendChild(logoImg);
+                
+                alert('Logo berhasil diubah!');
+            } else {
+                alert('Silakan masukkan URL logo atau unggah file logo.');
+            }
+        }
+        
+        function saveVideoConfig() {
+            config.videoUrl = document.getElementById('video-url').value;
+            
+            localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
+            
+            // Update video
+            const videoIframe = document.querySelector('.video-container iframe');
+            videoIframe.src = config.videoUrl;
+            
+            alert('Video berhasil diubah!');
+        }
+        
+        // Function to fetch data from Google Sheets
+        async function fetchData() {
+            if (!config.sheetUrl) {
+                console.error('Google Sheets URL belum diatur');
+                return;
+            }
+            
+            try {
+                const response = await fetch(config.sheetUrl);
+                const csvData = await response.text();
+                
+                // Parse CSV data
+                const menuData = parseCSV(csvData);
+                
+                // Render menu
+                renderMenu(menuData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Error mengambil data. Pastikan URL Google Sheets benar dan sudah dipublikasikan.');
+            }
+        }
+        
+        // Function to parse CSV data
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const result = [];
+            
+            // Skip header row and process each line
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    // Simple CSV parsing (for more complex CSVs, consider using a library)
+                    const values = line.split(',');
+                    if (values.length >= 3) {
+                        result.push({
+                            name: values[0].replace(/"/g, '').trim(),
+                            stock: parseInt(values[1].replace(/"/g, '').trim()) || 0,
+                            status: values[2].replace(/"/g, '').trim().toLowerCase()
+                        });
+                    }
+                }
+            }
+            
+            return result;
+        }
+        
+        // Function to render menu items
+        function renderMenu(menuData) {
+            const menuList = document.getElementById('menu-list');
+            const emptyMenuList = document.getElementById('empty-menu-list');
+            
+            // Clear existing content
+            menuList.innerHTML = '';
+            emptyMenuList.innerHTML = '';
+            
+            // Separate menus by status
+            const readyMenu = menuData.filter(menu => menu.status === 'ready');
+            const tersisaMenu = menuData.filter(menu => menu.status === 'tersisa');
+            const habisMenu = menuData.filter(menu => menu.status === 'habis');
+            
+            // Render ready and tersisa menus in the left column
+            if (readyMenu.length > 0 || tersisaMenu.length > 0) {
+                // Render ready menus
+                readyMenu.forEach(menu => {
+                    const menuItem = document.createElement('div');
+                    menuItem.className = 'menu-item';
+                    
+                    menuItem.innerHTML = `
+                        <div class="menu-name">${menu.name}</div>
+                        <div class="menu-status">
+                            <span class="status-ready">Ready</span>
+                        </div>
+                    `;
+                    
+                    menuList.appendChild(menuItem);
+                });
+                
+                // Render tersisa menus
+                tersisaMenu.forEach(menu => {
+                    const menuItem = document.createElement('div');
+                    menuItem.className = 'menu-item tersisa';
+                    
+                    if (menu.stock <= 2) {
+                        menuItem.classList.add('pulse');
+                    }
+                    
+                    menuItem.innerHTML = `
+                        <div class="menu-name">${menu.name}</div>
+                        <div class="menu-status">
+                            <span class="status-tersisa">Tersisa</span>
+                            <span class="stock-amount">${menu.stock} porsi</span>
+                        </div>
+                    `;
+                    
+                    menuList.appendChild(menuItem);
+                });
+            } else {
+                menuList.innerHTML = `
+                    <div class="empty-menu">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Tidak Ada Menu Tersedia</h3>
+                        <p>Semua menu sedang habis</p>
+                    </div>
+                `;
+            }
+            
+            // Render habis menus in the right column
+            if (habisMenu.length > 0) {
+                habisMenu.forEach(menu => {
+                    const menuItem = document.createElement('div');
+                    menuItem.className = 'menu-item habis';
+                    
+                    menuItem.innerHTML = `
+                        <div class="menu-name">${menu.name}</div>
+                        <div class="menu-status">
+                            <span class="status-habis">Habis</span>
+                        </div>
+                    `;
+                    
+                    emptyMenuList.appendChild(menuItem);
+                });
+            } else {
+                emptyMenuList.innerHTML = `
+                    <div class="empty-menu">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Semua menu tersedia</h3>
+                        <p>Tidak ada menu yang habis saat ini</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set up event listeners
+            settingsLogo.addEventListener('click', toggleSettings);
+            closeBtn.addEventListener('click', closeSettings);
+            saveSheetsBtn.addEventListener('click', saveSheetsConfig);
+            saveLogoBtn.addEventListener('click', saveLogoConfig);
+            saveVideoBtn.addEventListener('click', saveVideoConfig);
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', switchTab);
+            });
+            
+            // Load saved configuration
+            loadConfig();
+            
+            // For demo purposes, if no config is set, use sample data
+            if (!config.sheetUrl) {
+                // Sample menu data for demonstration
+                const sampleData = [
+                    { name: "Nasi Goreng Spesial", stock: 12, status: "ready" },
+                    { name: "Ayam Bakar Madu", stock: 0, status: "habis" },
+                    { name: "Gado-gado", stock: 7, status: "ready" },
+                    { name: "Sate Ayam", stock: 3, status: "tersisa" },
+                    { name: "Soto Betawi", stock: 10, status: "ready" },
+                    { name: "Es Jeruk", stock: 1, status: "tersisa" },
+                    { name: "Teh Manis", stock: 15, status: "ready" },
+                    { name: "Jus Alpukat", stock: 0, status: "habis" }
+                ];
+                
+                renderMenu(sampleData);
+            }
+        });
+    </script>
+</body>
+</html>
