@@ -75,8 +75,15 @@
         
         .header-content h1 {
             font-size: 2rem;
-            margin-bottom: 0;
+            margin-bottom: 5px;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content h3 {
+            font-size: 1.2rem;
+            margin: 0;
+            font-weight: 400;
+            opacity: 0.9;
         }
         
         .current-time {
@@ -86,6 +93,15 @@
             padding: 5px 10px;
             border-radius: 5px;
             margin-left: auto;
+            text-align: right;
+        }
+        
+        .operational-hours {
+            font-size: 0.85rem;
+            font-weight: 400;
+            padding: 5px 10px;
+            opacity: 0.8;
+            text-align: right;
         }
         
         /* Status Indicator */
@@ -569,6 +585,10 @@
                 font-size: 1.7rem;
             }
             
+            .header-content h3 {
+                font-size: 1rem;
+            }
+            
             .menu-name {
                 font-size: 0.85rem;
             }
@@ -577,7 +597,7 @@
                 flex-wrap: wrap;
             }
             
-            .current-time {
+            .current-time, .operational-hours {
                 margin-top: 8px;
                 margin-left: 0;
                 width: 100%;
@@ -623,8 +643,12 @@
             </div>
             <div class="header-content">
                 <h1>Angkringan Kembang</h1>
+                <h3>Informasi Menu</h3>
             </div>
-            <div class="current-time" id="current-time"></div>
+            <div>
+                <div class="current-time" id="current-time"></div>
+                <div class="operational-hours">Jam Operasional: Buka Setiap Hari 10:00 - 22:00</div>
+            </div>
         </header>
         
         <div class="setup-section" id="setup-section">
@@ -746,10 +770,9 @@
         
         <footer>
             <div class="footer-left">
-                <span>Reservasi dan pemesanan, Hubungi:</span>
                 <div class="contact-item">
                     <i class="fab fa-whatsapp"></i>
-                    <span>088216562558</span>
+                    <span>Reservasi dan Pemesanan 088216562558</span>
                 </div>
             </div>
             <div class="footer-right">
