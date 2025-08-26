@@ -82,10 +82,39 @@
         .current-time {
             font-size: 0.95rem;
             font-weight: 600;
-            background: rgba(0, 0, 0, 0);
+            background: rgba(0, 0, 0, 0.2);
             padding: 5px 10px;
             border-radius: 5px;
             margin-left: auto;
+        }
+        
+        /* Status Indicator */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-connected {
+            background-color: #2ecc71;
+        }
+        
+        .status-disconnected {
+            background-color: #e74c3c;
+        }
+        
+        .status-loading {
+            background-color: #f39c12;
+            animation: pulse 1.5s infinite;
         }
         
         /* Setup Section - Initially Hidden */
@@ -236,6 +265,27 @@
             background: #092c09;
         }
         
+        /* Debug Info */
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            border-left: 3px solid #3498db;
+            display: none;
+        }
+        
+        .debug-toggle {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            text-decoration: underline;
+        }
+        
         /* Main Content Styles */
         .main-content {
             display: grid;
@@ -250,6 +300,15 @@
             padding-bottom: 6px;
             border-bottom: 2px solid #0d3b0d;
             color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .last-updated {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            font-weight: normal;
         }
         
         /* Menu Update Section */
@@ -509,6 +568,12 @@
                 margin-right: 10px;
                 margin-bottom: 5px;
             }
+            
+            .section-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
         }
     </style>
 </head>
@@ -520,6 +585,10 @@
             </div>
             <div class="header-content">
                 <h1>Angkringan Kembang</h1>
+                <div class="status-indicator">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Memuat data...</span>
+                </div>
             </div>
             <div class="current-time" id="current-time"></div>
         </header>
@@ -558,9 +627,15 @@
                     </div>
                     <div class="form-group">
                         <label for="update-interval">Interval Pembaruan (detik):</label>
-                        <input type="number" id="update-interval" value="30" min="10">
+                        <input type="number" id="update-interval" value="10" min="5">
                     </div>
                     <button class="btn" id="save-sheets">Simpan Konfigurasi</button>
+                    
+                    <button class="debug-toggle" id="debug-toggle">Tampilkan Info Debug</button>
+                    <div class="debug-info" id="debug-info">
+                        <h4>Info Debug:</h4>
+                        <div id="debug-content">Data debug akan muncul di sini</div>
+                    </div>
                 </div>
             </div>
             
@@ -593,33 +668,15 @@
         <div class="main-content">
             <div class="left-column">
                 <div class="menu-update">
-                    <h2 class="section-title">Menu Update</h2>
+                    <h2 class="section-title">
+                        Menu Update
+                        <span class="last-updated" id="menu-update-time"></span>
+                    </h2>
                     <div class="menu-list" id="menu-list">
-                        <div class="menu-item">
-                            <div class="menu-name">Nasi Goreng Spesial</div>
-                            <div class="menu-status">
-                                <span class="status-ready">Ready</span>
-                            </div>
-                        </div>
-                        <div class="menu-item tersisa">
-                            <div class="menu-name">Sate Ayam</div>
-                            <div class="menu-status">
-                                <span class="status-tersisa">Tersisa</span>
-                                <span class="stock-amount">3 porsi</span>
-                            </div>
-                        </div>
-                        <div class="menu-item tersisa pulse">
-                            <div class="menu-name">Es Jeruk</div>
-                            <div class="menu-status">
-                                <span class="status-tersisa">Tersisa</span>
-                                <span class="stock-amount">1 porsi</span>
-                            </div>
-                        </div>
-                        <div class="menu-item">
-                            <div class="menu-name">Teh Manis</div>
-                            <div class="menu-status">
-                                <span class="status-ready">Ready</span>
-                            </div>
+                        <div class="empty-menu">
+                            <i class="fas fa-database"></i>
+                            <h3>Data Belum Dimuat</h3>
+                            <p>Klik logo untuk setup Google Sheets</p>
                         </div>
                     </div>
                     
@@ -634,19 +691,15 @@
             
             <div class="right-column">
                 <div class="menu-habis">
-                    <h2 class="section-title">Menu Habis</h2>
+                    <h2 class="section-title">
+                        Menu Habis
+                        <span class="last-updated" id="menu-habis-time"></span>
+                    </h2>
                     <div class="empty-menu-list" id="empty-menu-list">
-                        <div class="menu-item habis">
-                            <div class="menu-name">Ayam Bakar Madu</div>
-                            <div class="menu-status">
-                                <span class="status-habis">Habis</span>
-                            </div>
-                        </div>
-                        <div class="menu-item habis">
-                            <div class="menu-name">Jus Alpukat</div>
-                            <div class="menu-status">
-                                <span class="status-habis">Habis</span>
-                            </div>
+                        <div class="empty-menu">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Data Belum Dimuat</h3>
+                            <p>Klik logo untuk setup Google Sheets</p>
                         </div>
                     </div>
                 </div>
@@ -671,7 +724,7 @@
         // Configuration
         let config = {
             sheetUrl: '',
-            updateInterval: 30,
+            updateInterval: 10,
             logoUrl: '',
             videoUrl: 'https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1&mute=1&loop=1&playlist=6stlCkUDG_s'
         };
@@ -685,6 +738,17 @@
         const saveVideoBtn = document.getElementById('save-video');
         const tabs = document.querySelectorAll('.tab');
         const currentTimeElement = document.getElementById('current-time');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const debugToggle = document.getElementById('debug-toggle');
+        const debugInfo = document.getElementById('debug-info');
+        const debugContent = document.getElementById('debug-content');
+        const menuUpdateTime = document.getElementById('menu-update-time');
+        const menuHabisTime = document.getElementById('menu-habis-time');
+        
+        // Variables
+        let refreshInterval;
+        let lastUpdateTime = new Date();
         
         // Update current time
         function updateTime() {
@@ -701,9 +765,40 @@
             currentTimeElement.textContent = now.toLocaleDateString('id-ID', options);
         }
         
-        // Update time immediately and then every second
-        updateTime();
-        setInterval(updateTime, 1000);
+        // Update status indicator
+        function updateStatus(status, message) {
+            statusDot.className = 'status-dot';
+            statusText.textContent = message;
+            
+            switch(status) {
+                case 'connected':
+                    statusDot.classList.add('status-connected');
+                    break;
+                case 'disconnected':
+                    statusDot.classList.add('status-disconnected');
+                    break;
+                case 'loading':
+                    statusDot.classList.add('status-loading');
+                    break;
+            }
+        }
+        
+        // Update last updated time
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            lastUpdateTime = now;
+            const timeString = now.toLocaleTimeString('id-ID');
+            menuUpdateTime.textContent = `Terakhir update: ${timeString}`;
+            menuHabisTime.textContent = `Terakhir update: ${timeString}`;
+        }
+        
+        // Add debug info
+        function addDebugInfo(message) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID');
+            debugContent.innerHTML += `<div><strong>[${timeString}]</strong> ${message}</div>`;
+            debugContent.scrollTop = debugContent.scrollHeight;
+        }
         
         // Toggle settings visibility
         function toggleSettings() {
@@ -732,6 +827,17 @@
                 content.classList.remove('active');
             });
             document.getElementById(`${tabId}-tab`).classList.add('active');
+        }
+        
+        // Toggle debug info
+        function toggleDebugInfo() {
+            if (debugInfo.style.display === 'block') {
+                debugInfo.style.display = 'none';
+                debugToggle.textContent = 'Tampilkan Info Debug';
+            } else {
+                debugInfo.style.display = 'block';
+                debugToggle.textContent = 'Sembunyikan Info Debug';
+            }
         }
         
         // Load configuration from localStorage if available
@@ -764,9 +870,19 @@
                 if (config.sheetUrl) {
                     fetchData();
                     // Set up interval for updates
-                    setInterval(fetchData, config.updateInterval * 1000);
+                    setupRefreshInterval();
                 }
             }
+        }
+        
+        // Setup refresh interval
+        function setupRefreshInterval() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            
+            refreshInterval = setInterval(fetchData, config.updateInterval * 1000);
+            addDebugInfo(`Interval pembaruan diatur ke ${config.updateInterval} detik`);
         }
         
         // Save configuration to localStorage
@@ -781,7 +897,9 @@
             fetchData();
             
             // Set up interval for updates
-            setInterval(fetchData, config.updateInterval * 1000);
+            setupRefreshInterval();
+            
+            addDebugInfo('Konfigurasi Google Sheets disimpan');
         }
         
         function saveLogoConfig() {
@@ -803,6 +921,7 @@
                     logoElement.appendChild(logoImg);
                     
                     alert('Logo berhasil diubah!');
+                    addDebugInfo('Logo diubah dari unggahan file');
                 };
                 reader.readAsDataURL(logoUpload);
             } else if (logoUrl) {
@@ -818,6 +937,7 @@
                 logoElement.appendChild(logoImg);
                 
                 alert('Logo berhasil diubah!');
+                addDebugInfo('Logo diubah dari URL: ' + logoUrl);
             } else {
                 alert('Silakan masukkan URL logo atau unggah file logo.');
             }
@@ -833,26 +953,48 @@
             videoIframe.src = config.videoUrl;
             
             alert('Video berhasil diubah!');
+            addDebugInfo('Video diubah: ' + config.videoUrl);
         }
         
         // Function to fetch data from Google Sheets
         async function fetchData() {
             if (!config.sheetUrl) {
+                updateStatus('disconnected', 'URL Google Sheets belum diatur');
                 console.error('Google Sheets URL belum diatur');
                 return;
             }
             
+            updateStatus('loading', 'Memuat data...');
+            addDebugInfo('Memulai fetch data dari Google Sheets');
+            
             try {
-                const response = await fetch(config.sheetUrl);
+                // Add cache busting parameter to prevent caching
+                const url = config.sheetUrl + (config.sheetUrl.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+                addDebugInfo('URL request: ' + url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const csvData = await response.text();
+                addDebugInfo('Data CSV diterima, panjang: ' + csvData.length + ' karakter');
                 
                 // Parse CSV data
                 const menuData = parseCSV(csvData);
+                addDebugInfo(`Data berhasil diparse: ${menuData.length} menu ditemukan`);
                 
                 // Render menu
                 renderMenu(menuData);
+                
+                updateStatus('connected', 'Data terhubung');
+                updateLastUpdatedTime();
+                
             } catch (error) {
                 console.error('Error fetching data:', error);
+                updateStatus('disconnected', 'Koneksi error');
+                addDebugInfo('Error: ' + error.message);
                 alert('Error mengambil data. Pastikan URL Google Sheets benar dan sudah dipublikasikan.');
             }
         }
@@ -862,18 +1004,46 @@
             const lines = csv.split('\n');
             const result = [];
             
+            addDebugInfo('Memulai parsing CSV, jumlah baris: ' + lines.length);
+            
             // Skip header row and process each line
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (line) {
-                    // Simple CSV parsing (for more complex CSVs, consider using a library)
-                    const values = line.split(',');
+                    // More robust CSV parsing that handles quotes and commas within values
+                    const values = [];
+                    let inQuotes = false;
+                    let currentValue = '';
+                    
+                    for (let j = 0; j < line.length; j++) {
+                        const char = line[j];
+                        
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            values.push(currentValue);
+                            currentValue = '';
+                        } else {
+                            currentValue += char;
+                        }
+                    }
+                    
+                    values.push(currentValue);
+                    
                     if (values.length >= 3) {
-                        result.push({
+                        const menuItem = {
                             name: values[0].replace(/"/g, '').trim(),
                             stock: parseInt(values[1].replace(/"/g, '').trim()) || 0,
                             status: values[2].replace(/"/g, '').trim().toLowerCase()
-                        });
+                        };
+                        
+                        // Validate status
+                        if (!['ready', 'tersisa', 'habis'].includes(menuItem.status)) {
+                            addDebugInfo(`Peringatan: Status tidak valid untuk menu "${menuItem.name}": "${menuItem.status}"`);
+                            continue; // Skip invalid status
+                        }
+                        
+                        result.push(menuItem);
                     }
                 }
             }
@@ -894,6 +1064,8 @@
             const readyMenu = menuData.filter(menu => menu.status === 'ready');
             const tersisaMenu = menuData.filter(menu => menu.status === 'tersisa');
             const habisMenu = menuData.filter(menu => menu.status === 'habis');
+            
+            addDebugInfo(`Menu Ready: ${readyMenu.length}, Tersisa: ${tersisaMenu.length}, Habis: ${habisMenu.length}`);
             
             // Render ready and tersisa menus in the left column
             if (readyMenu.length > 0 || tersisaMenu.length > 0) {
@@ -975,17 +1147,23 @@
             saveSheetsBtn.addEventListener('click', saveSheetsConfig);
             saveLogoBtn.addEventListener('click', saveLogoConfig);
             saveVideoBtn.addEventListener('click', saveVideoConfig);
+            debugToggle.addEventListener('click', toggleDebugInfo);
             
             // Tab switching
             tabs.forEach(tab => {
                 tab.addEventListener('click', switchTab);
             });
             
+            // Update time immediately and then every second
+            updateTime();
+            setInterval(updateTime, 1000);
+            
             // Load saved configuration
             loadConfig();
             
             // For demo purposes, if no config is set, use sample data
             if (!config.sheetUrl) {
+                updateStatus('disconnected', 'Google Sheets belum dikonfigurasi');
                 // Sample menu data for demonstration
                 const sampleData = [
                     { name: "Nasi Goreng Spesial", stock: 12, status: "ready" },
