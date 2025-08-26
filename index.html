@@ -82,7 +82,7 @@
         .current-time {
             font-size: 0.95rem;
             font-weight: 600;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0,0,0,0);
             padding: 5px 10px;
             border-radius: 5px;
             margin-left: auto;
@@ -341,7 +341,7 @@
         
         .menu-item.tersisa {
             background: #fffbf0;
-            border-left-color: #f39c12;
+            border-left-color: #FFC000;
         }
         
         .menu-item:hover {
@@ -367,13 +367,13 @@
             font-size: 0.85rem;
         }
         
-        .status-ready {
+        .status-tersedia {
             color: #27ae60;
             font-weight: bold;
         }
         
         .status-tersisa {
-            color: #f39c12;
+            color: #FFC000;
             font-weight: bold;
         }
         
@@ -500,6 +500,16 @@
             animation: pulse 2s infinite;
         }
         
+        /* Animation for updated items */
+        @keyframes highlight {
+            0% { background-color: #ffff99; }
+            100% { background-color: inherit; }
+        }
+        
+        .updated {
+            animation: highlight 2s ease-in-out;
+        }
+        
         /* Responsive Design */
         @media (max-width: 900px) {
             .main-content {
@@ -575,6 +585,24 @@
                 gap: 5px;
             }
         }
+        
+        /* Additional responsive adjustments */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .menu-list, .empty-menu-list {
+                gap: 4px;
+            }
+            
+            .menu-item {
+                padding: 6px 8px;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -585,10 +613,6 @@
             </div>
             <div class="header-content">
                 <h1>Angkringan Kembang</h1>
-                <div class="status-indicator">
-                    <div class="status-dot" id="status-dot"></div>
-                    <span id="status-text">Memuat data...</span>
-                </div>
             </div>
             <div class="current-time" id="current-time"></div>
         </header>
@@ -596,6 +620,10 @@
         <div class="setup-section" id="setup-section">
             <div class="close-btn" id="close-btn">X</div>
             <h2>Pengaturan Sistem</h2>
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Memuat data...</span>
+            </div>
             
             <div class="setup-tabs">
                 <div class="tab active" data-tab="sheets">Google Sheets</div>
@@ -608,7 +636,7 @@
                     <div class="step">
                         <h3><span class="step-number">1</span>Buat Google Sheet</h3>
                         <p>Buat spreadsheet baru di Google Sheets dengan kolom: <strong>Nama Menu, Stok, Status</strong></p>
-                        <p><strong>Format Status:</strong> "Ready", "Tersisa", atau "Habis"</p>
+                        <p><strong>Format Status:</strong> "Tersedia", "Tersisa", atau "Habis"</p>
                     </div>
                     <div class="step">
                         <h3><span class="step-number">2</span>Publikasikan Sheet</h3>
@@ -749,6 +777,7 @@
         // Variables
         let refreshInterval;
         let lastUpdateTime = new Date();
+        let previousMenuData = []; // To track changes for animations
         
         // Update current time
         function updateTime() {
@@ -1038,7 +1067,7 @@
                         };
                         
                         // Validate status
-                        if (!['ready', 'tersisa', 'habis'].includes(menuItem.status)) {
+                        if (!['tersedia', 'tersisa', 'habis'].includes(menuItem.status)) {
                             addDebugInfo(`Peringatan: Status tidak valid untuk menu "${menuItem.name}": "${menuItem.status}"`);
                             continue; // Skip invalid status
                         }
@@ -1061,23 +1090,32 @@
             emptyMenuList.innerHTML = '';
             
             // Separate menus by status
-            const readyMenu = menuData.filter(menu => menu.status === 'ready');
+            const tersediaMenu = menuData.filter(menu => menu.status === 'tersedia');
             const tersisaMenu = menuData.filter(menu => menu.status === 'tersisa');
             const habisMenu = menuData.filter(menu => menu.status === 'habis');
             
-            addDebugInfo(`Menu Ready: ${readyMenu.length}, Tersisa: ${tersisaMenu.length}, Habis: ${habisMenu.length}`);
+            addDebugInfo(`Menu Tersedia: ${tersediaMenu.length}, Tersisa: ${tersisaMenu.length}, Habis: ${habisMenu.length}`);
             
-            // Render ready and tersisa menus in the left column
-            if (readyMenu.length > 0 || tersisaMenu.length > 0) {
-                // Render ready menus
-                readyMenu.forEach(menu => {
+            // Helper function to check if a menu item has changed
+            function hasChanged(menu) {
+                const prev = previousMenuData.find(p => p.name === menu.name);
+                return !prev || prev.stock !== menu.stock || prev.status !== menu.status;
+            }
+            
+            // Render tersedia and tersisa menus in the left column
+            if (tersediaMenu.length > 0 || tersisaMenu.length > 0) {
+                // Render tersedia menus
+                tersediaMenu.forEach(menu => {
                     const menuItem = document.createElement('div');
                     menuItem.className = 'menu-item';
+                    if (hasChanged(menu)) {
+                        menuItem.classList.add('updated');
+                    }
                     
                     menuItem.innerHTML = `
                         <div class="menu-name">${menu.name}</div>
                         <div class="menu-status">
-                            <span class="status-ready">Ready</span>
+                            <span class="status-tersedia">Tersedia</span>
                         </div>
                     `;
                     
@@ -1088,6 +1126,9 @@
                 tersisaMenu.forEach(menu => {
                     const menuItem = document.createElement('div');
                     menuItem.className = 'menu-item tersisa';
+                    if (hasChanged(menu)) {
+                        menuItem.classList.add('updated');
+                    }
                     
                     if (menu.stock <= 2) {
                         menuItem.classList.add('pulse');
@@ -1118,6 +1159,9 @@
                 habisMenu.forEach(menu => {
                     const menuItem = document.createElement('div');
                     menuItem.className = 'menu-item habis';
+                    if (hasChanged(menu)) {
+                        menuItem.classList.add('updated');
+                    }
                     
                     menuItem.innerHTML = `
                         <div class="menu-name">${menu.name}</div>
@@ -1137,6 +1181,9 @@
                     </div>
                 `;
             }
+            
+            // Update previous data for next render
+            previousMenuData = menuData;
         }
         
         // Initialize on page load
@@ -1166,13 +1213,13 @@
                 updateStatus('disconnected', 'Google Sheets belum dikonfigurasi');
                 // Sample menu data for demonstration
                 const sampleData = [
-                    { name: "Nasi Goreng Spesial", stock: 12, status: "ready" },
+                    { name: "Nasi Goreng Spesial", stock: 12, status: "tersedia" },
                     { name: "Ayam Bakar Madu", stock: 0, status: "habis" },
-                    { name: "Gado-gado", stock: 7, status: "ready" },
+                    { name: "Gado-gado", stock: 7, status: "tersedia" },
                     { name: "Sate Ayam", stock: 3, status: "tersisa" },
-                    { name: "Soto Betawi", stock: 10, status: "ready" },
+                    { name: "Soto Betawi", stock: 10, status: "tersedia" },
                     { name: "Es Jeruk", stock: 1, status: "tersisa" },
-                    { name: "Teh Manis", stock: 15, status: "ready" },
+                    { name: "Teh Manis", stock: 15, status: "tersedia" },
                     { name: "Jus Alpukat", stock: 0, status: "habis" }
                 ];
                 
