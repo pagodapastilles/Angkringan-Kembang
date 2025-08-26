@@ -334,9 +334,10 @@
             border-radius: 5px;
             border-left: 3px solid #2ecc71;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
             min-height: auto;
             background: #f0f9f0;
+            opacity: 1;
         }
         
         .menu-item.tersisa {
@@ -502,12 +503,21 @@
         
         /* Animation for updated items */
         @keyframes highlight {
-            0% { background-color: #ffff99; }
-            100% { background-color: inherit; }
+            0% { background-color: #ffff99; transform: scale(1.02); }
+            100% { background-color: inherit; transform: scale(1); }
         }
         
         .updated {
-            animation: highlight 2s ease-in-out;
+            animation: highlight 1s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .new-item {
+            animation: fadeIn 0.5s ease-in-out;
         }
         
         /* Responsive Design */
@@ -1080,107 +1090,115 @@
             return result;
         }
         
-        // Function to render menu items
+        // Function to create or update a menu item element
+        function createMenuItem(menu) {
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item';
+            menuItem.dataset.name = menu.name; // Use name as key
+            
+            if (menu.status === 'tersisa') {
+                menuItem.classList.add('tersisa');
+                if (menu.stock <= 2) {
+                    menuItem.classList.add('pulse');
+                }
+            } else if (menu.status === 'habis') {
+                menuItem.classList.add('habis');
+            }
+            
+            const statusClass = `status-${menu.status}`;
+            const stockHtml = menu.status === 'tersisa' ? `<span class="stock-amount">${menu.stock} porsi</span>` : '';
+            
+            menuItem.innerHTML = `
+                <div class="menu-name">${menu.name}</div>
+                <div class="menu-status">
+                    <span class="${statusClass}">${menu.status.charAt(0).toUpperCase() + menu.status.slice(1)}</span>
+                    ${stockHtml}
+                </div>
+            `;
+            
+            return menuItem;
+        }
+        
+        // Function to render menu items incrementally
         function renderMenu(menuData) {
             const menuList = document.getElementById('menu-list');
             const emptyMenuList = document.getElementById('empty-menu-list');
             
-            // Clear existing content
-            menuList.innerHTML = '';
-            emptyMenuList.innerHTML = '';
-            
-            // Separate menus by status
-            const tersediaMenu = menuData.filter(menu => menu.status === 'tersedia');
-            const tersisaMenu = menuData.filter(menu => menu.status === 'tersisa');
-            const habisMenu = menuData.filter(menu => menu.status === 'habis');
-            
-            addDebugInfo(`Menu Tersedia: ${tersediaMenu.length}, Tersisa: ${tersisaMenu.length}, Habis: ${habisMenu.length}`);
-            
-            // Helper function to check if a menu item has changed
-            function hasChanged(menu) {
-                const prev = previousMenuData.find(p => p.name === menu.name);
-                return !prev || prev.stock !== menu.stock || prev.status !== menu.status;
+            // Remove empty messages if data is present
+            if (menuData.length > 0) {
+                menuList.querySelector('.empty-menu')?.remove();
+                emptyMenuList.querySelector('.empty-menu')?.remove();
             }
             
-            // Render tersedia and tersisa menus in the left column
-            if (tersediaMenu.length > 0 || tersisaMenu.length > 0) {
-                // Render tersedia menus
-                tersediaMenu.forEach(menu => {
-                    const menuItem = document.createElement('div');
-                    menuItem.className = 'menu-item';
-                    if (hasChanged(menu)) {
-                        menuItem.classList.add('updated');
+            // Create maps for quick lookup
+            const newDataMap = new Map(menuData.map(item => [item.name, item]));
+            const prevDataMap = new Map(previousMenuData.map(item => [item.name, item]));
+            
+            // Function to update or add to a list
+            function updateList(listElement, filterFn, emptyMessageHtml) {
+                const currentItems = Array.from(listElement.querySelectorAll('.menu-item'));
+                const currentNames = new Set(currentItems.map(item => item.dataset.name));
+                
+                // Remove items not in new data or not matching filter
+                currentItems.forEach(item => {
+                    const name = item.dataset.name;
+                    const newItem = newDataMap.get(name);
+                    if (!newItem || !filterFn(newItem)) {
+                        item.remove();
                     }
-                    
-                    menuItem.innerHTML = `
-                        <div class="menu-name">${menu.name}</div>
-                        <div class="menu-status">
-                            <span class="status-tersedia">Tersedia</span>
-                        </div>
-                    `;
-                    
-                    menuList.appendChild(menuItem);
                 });
                 
-                // Render tersisa menus
-                tersisaMenu.forEach(menu => {
-                    const menuItem = document.createElement('div');
-                    menuItem.className = 'menu-item tersisa';
-                    if (hasChanged(menu)) {
-                        menuItem.classList.add('updated');
+                // Add or update items
+                menuData.filter(filterFn).forEach(menu => {
+                    let item = listElement.querySelector(`[data-name="${menu.name}"]`);
+                    const isNew = !item;
+                    const hasChanged = !isNew && (prevDataMap.get(menu.name)?.status !== menu.status || prevDataMap.get(menu.name)?.stock !== menu.stock);
+                    
+                    if (isNew) {
+                        item = createMenuItem(menu);
+                        listElement.appendChild(item);
+                        item.classList.add('new-item');
+                    } else if (hasChanged) {
+                        const newItem = createMenuItem(menu);
+                        listElement.replaceChild(newItem, item);
+                        newItem.classList.add('updated');
+                        item = newItem;
                     }
-                    
-                    if (menu.stock <= 2) {
-                        menuItem.classList.add('pulse');
-                    }
-                    
-                    menuItem.innerHTML = `
-                        <div class="menu-name">${menu.name}</div>
-                        <div class="menu-status">
-                            <span class="status-tersisa">Tersisa</span>
-                            <span class="stock-amount">${menu.stock} porsi</span>
-                        </div>
-                    `;
-                    
-                    menuList.appendChild(menuItem);
                 });
-            } else {
-                menuList.innerHTML = `
+                
+                // Show empty message if no items
+                if (listElement.querySelectorAll('.menu-item').length === 0) {
+                    if (!listElement.querySelector('.empty-menu')) {
+                        listElement.innerHTML = emptyMessageHtml;
+                    }
+                }
+            }
+            
+            // Update menu-list (tersedia and tersisa)
+            updateList(
+                menuList,
+                menu => menu.status === 'tersedia' || menu.status === 'tersisa',
+                `
                     <div class="empty-menu">
                         <i class="fas fa-exclamation-circle"></i>
                         <h3>Tidak Ada Menu Tersedia</h3>
                         <p>Semua menu sedang habis</p>
                     </div>
-                `;
-            }
+                `
+            );
             
-            // Render habis menus in the right column
-            if (habisMenu.length > 0) {
-                habisMenu.forEach(menu => {
-                    const menuItem = document.createElement('div');
-                    menuItem.className = 'menu-item habis';
-                    if (hasChanged(menu)) {
-                        menuItem.classList.add('updated');
-                    }
-                    
-                    menuItem.innerHTML = `
-                        <div class="menu-name">${menu.name}</div>
-                        <div class="menu-status">
-                            <span class="status-habis">Habis</span>
-                        </div>
-                    `;
-                    
-                    emptyMenuList.appendChild(menuItem);
-                });
-            } else {
-                emptyMenuList.innerHTML = `
+            // Update empty-menu-list (habis)
+            updateList(
+                emptyMenuList,
+                menu => menu.status === 'habis',
+                `
                     <div class="empty-menu">
                         <i class="fas fa-check-circle"></i>
                         <h3>Semua menu tersedia</h3>
                         <p>Tidak ada menu yang habis saat ini</p>
                     </div>
-                `;
-            }
+                `
+            );
             
             // Update previous data for next render
             previousMenuData = menuData;
