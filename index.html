@@ -17,12 +17,19 @@
             background-color: #f8f9fa;
             color: #333;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
         
         /* Header Styles */
@@ -291,6 +298,8 @@
             display: grid;
             grid-template-columns: 7fr 5fr;
             gap: 15px;
+            flex: 1;
+            min-height: 0;
             margin-bottom: 15px;
         }
         
@@ -340,7 +349,7 @@
         }
         
         .menu-item.tersisa {
-            background: #EAA221;
+            background: #fffbf0;
             border-left-color: #EAA221;
         }
         
@@ -391,6 +400,7 @@
         /* Video Section */
         .video-section {
             margin-top: 15px;
+            order: 2; /* Ensure video is placed after main-content but before footer */
         }
         
         .video-container {
@@ -460,6 +470,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            order: 3; /* Ensure footer is last */
         }
         
         .footer-left {
@@ -707,13 +718,6 @@
                             <p>Klik logo untuk setup Google Sheets</p>
                         </div>
                     </div>
-                    
-                    <div class="video-section">
-                        <h3 class="section-title">Video Promosi</h3>
-                        <div class="video-container">
-                            <iframe src="https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1&mute=1&loop=1&playlist=6stlCkUDG_s" allow="autoplay" allowfullscreen></iframe>
-                        </div>
-                    </div>
                 </div>
             </div>
             
@@ -731,6 +735,13 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <div class="video-section">
+            <h3 class="section-title">Video Promosi</h3>
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1&mute=1&loop=1&playlist=6stlCkUDG_s" allow="autoplay" allowfullscreen></iframe>
             </div>
         </div>
         
