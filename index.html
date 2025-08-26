@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -23,8 +24,7 @@
         }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 100%;
             padding: 20px;
             flex: 1;
             display: flex;
@@ -296,7 +296,7 @@
         /* Main Content Styles */
         .main-content {
             display: grid;
-            grid-template-columns: 7fr 5fr;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
             flex: 1;
             min-height: 0;
@@ -400,7 +400,7 @@
         /* Video Section */
         .video-section {
             margin-top: 15px;
-            order: 2; /* Ensure video is placed after main-content but before footer */
+            order: 2;
         }
         
         .video-container {
@@ -470,7 +470,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            order: 3; /* Ensure footer is last */
+            order: 3;
         }
         
         .footer-left {
@@ -595,15 +595,13 @@
                 align-items: flex-start;
                 gap: 5px;
             }
-        }
-        
-        /* Additional responsive adjustments */
-        @media (max-width: 1200px) {
+            
             .container {
-                padding: 15px;
+                padding: 10px;
             }
         }
         
+        /* Additional responsive adjustments */
         @media (max-width: 768px) {
             .menu-list, .empty-menu-list {
                 gap: 4px;
@@ -1205,38 +1203,4 @@
             saveSheetsBtn.addEventListener('click', saveSheetsConfig);
             saveLogoBtn.addEventListener('click', saveLogoConfig);
             saveVideoBtn.addEventListener('click', saveVideoConfig);
-            debugToggle.addEventListener('click', toggleDebugInfo);
-            
-            // Tab switching
-            tabs.forEach(tab => {
-                tab.addEventListener('click', switchTab);
-            });
-            
-            // Update time immediately and then every second
-            updateTime();
-            setInterval(updateTime, 1000);
-            
-            // Load saved configuration
-            loadConfig();
-            
-            // For demo purposes, if no config is set, use sample data
-            if (!config.sheetUrl) {
-                updateStatus('disconnected', 'Google Sheets belum dikonfigurasi');
-                // Sample menu data for demonstration
-                const sampleData = [
-                    { name: "Nasi Goreng Spesial", stock: 12, status: "tersedia" },
-                    { name: "Ayam Bakar Madu", stock: 0, status: "habis" },
-                    { name: "Gado-gado", stock: 7, status: "tersedia" },
-                    { name: "Sate Ayam", stock: 3, status: "tersisa" },
-                    { name: "Soto Betawi", stock: 10, status: "tersedia" },
-                    { name: "Es Jeruk", stock: 1, status: "tersisa" },
-                    { name: "Teh Manis", stock: 15, status: "tersedia" },
-                    { name: "Jus Alpukat", stock: 0, status: "habis" }
-                ];
-                
-                renderMenu(sampleData);
-            }
-        });
-    </script>
-</body>
-</html>
+            debugToggle.addEventListener
