@@ -25,7 +25,6 @@
             padding: 20px;
         }
         
-        /* Header Styles */
         header {
             background: linear-gradient(to right, #0d3b0d, #145214);
             color: white;
@@ -89,7 +88,6 @@
         .current-time {
             font-size: 0.95rem;
             font-weight: 600;
-            background: rgba(0,0,0,0);
             padding: 5px 10px;
             border-radius: 5px;
             margin-left: auto;
@@ -104,7 +102,6 @@
             text-align: right;
         }
         
-        /* Status Indicator */
         .status-indicator {
             display: flex;
             align-items: center;
@@ -133,7 +130,6 @@
             animation: pulse 1.5s infinite;
         }
         
-        /* Setup Section - Initially Hidden */
         .setup-section {
             background: white;
             padding: 15px;
@@ -281,7 +277,6 @@
             background: #092c09;
         }
         
-        /* Debug Info */
         .debug-info {
             background: #f8f9fa;
             padding: 10px;
@@ -302,7 +297,6 @@
             text-decoration: underline;
         }
         
-        /* Main Content Styles */
         .main-content {
             display: grid;
             grid-template-columns: 7fr 5fr;
@@ -327,7 +321,6 @@
             font-weight: normal;
         }
         
-        /* Menu Update Section */
         .menu-update {
             background: white;
             padding: 15px;
@@ -400,13 +393,11 @@
         }
         
         .stock-amount {
-            color: #EAA221;
             font-weight: bold;
             margin-left: 6px;
             font-size: 0.85rem;
         }
         
-        /* Video Section */
         .video-section {
             margin-top: 15px;
         }
@@ -416,7 +407,7 @@
             border-radius: 6px;
             overflow: hidden;
             position: relative;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            padding-top: 56.25%;
         }
         
         .video-container iframe {
@@ -428,7 +419,6 @@
             border: none;
         }
         
-        /* Menu Habis Section */
         .menu-habis {
             background: white;
             padding: 15px;
@@ -468,7 +458,6 @@
             font-size: 0.9rem;
         }
         
-        /* Footer Styles */
         footer {
             background: linear-gradient(to right, #0d3b0d, #145214);
             color: white;
@@ -507,7 +496,6 @@
             color: #fff;
         }
         
-        /* Animation for low stock items */
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -518,7 +506,6 @@
             animation: pulse 2s infinite;
         }
         
-        /* Animation for updated items */
         @keyframes highlight {
             0% { background-color: #ffff99; transform: scale(1.02); }
             100% { background-color: inherit; transform: scale(1); }
@@ -537,7 +524,6 @@
             animation: fadeIn 0.5s ease-in-out;
         }
         
-        /* Responsive Design */
         @media (max-width: 900px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -617,7 +603,6 @@
             }
         }
         
-        /* Additional responsive adjustments */
         @media (max-width: 1200px) {
             .container {
                 padding: 15px;
@@ -690,7 +675,7 @@
                     </div>
                     <div class="form-group">
                         <label for="update-interval">Interval Pembaruan (detik):</label>
-                        <input type="number" id="update-interval" value="10" min="5">
+                        <input type="number" id="update-interval" value="5" min="1">
                     </div>
                     <button class="btn" id="save-sheets">Simpan Konfigurasi</button>
                     
@@ -787,7 +772,7 @@
         // Configuration
         let config = {
             sheetUrl: '',
-            updateInterval: 10,
+            updateInterval: 5,
             logoUrl: '',
             videoUrl: 'https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1&mute=1&loop=1&playlist=6stlCkUDG_s'
         };
@@ -812,7 +797,8 @@
         // Variables
         let refreshInterval;
         let lastUpdateTime = new Date();
-        let previousMenuData = []; // To track changes for animations
+        let previousMenuData = [];
+        let lastFetchData = null;
         
         // Update current time
         function updateTime() {
@@ -833,17 +819,10 @@
         function updateStatus(status, message) {
             statusDot.className = 'status-dot';
             statusText.textContent = message;
-            
             switch(status) {
-                case 'connected':
-                    statusDot.classList.add('status-connected');
-                    break;
-                case 'disconnected':
-                    statusDot.classList.add('status-disconnected');
-                    break;
-                case 'loading':
-                    statusDot.classList.add('status-loading');
-                    break;
+                case 'connected': statusDot.classList.add('status-connected'); break;
+                case 'disconnected': statusDot.classList.add('status-disconnected'); break;
+                case 'loading': statusDot.classList.add('status-loading'); break;
             }
         }
         
@@ -856,21 +835,22 @@
             menuHabisTime.textContent = `Terakhir update: ${timeString}`;
         }
         
-        // Add debug info
+        // Add debug info (limited to last 10 entries to save memory)
         function addDebugInfo(message) {
             const now = new Date();
             const timeString = now.toLocaleTimeString('id-ID');
-            debugContent.innerHTML += `<div><strong>[${timeString}]</strong> ${message}</div>`;
+            const debugEntry = `<div><strong>[${timeString}]</strong> ${message}</div>`;
+            debugContent.innerHTML += debugEntry;
+            const entries = debugContent.querySelectorAll('div');
+            if (entries.length > 10) {
+                entries[0].remove();
+            }
             debugContent.scrollTop = debugContent.scrollHeight;
         }
         
         // Toggle settings visibility
         function toggleSettings() {
-            if (setupSection.style.display === 'block') {
-                setupSection.style.display = 'none';
-            } else {
-                setupSection.style.display = 'block';
-            }
+            setupSection.style.display = setupSection.style.display === 'block' ? 'none' : 'block';
         }
         
         // Close settings
@@ -881,30 +861,19 @@
         // Switch tabs
         function switchTab(e) {
             const tabId = e.target.getAttribute('data-tab');
-            
-            // Update active tab
             tabs.forEach(tab => tab.classList.remove('active'));
             e.target.classList.add('active');
-            
-            // Show active tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById(`${tabId}-tab`).classList.add('active');
         }
         
         // Toggle debug info
         function toggleDebugInfo() {
-            if (debugInfo.style.display === 'block') {
-                debugInfo.style.display = 'none';
-                debugToggle.textContent = 'Tampilkan Info Debug';
-            } else {
-                debugInfo.style.display = 'block';
-                debugToggle.textContent = 'Sembunyikan Info Debug';
-            }
+            debugInfo.style.display = debugInfo.style.display === 'block' ? 'none' : 'block';
+            debugToggle.textContent = debugInfo.style.display === 'block' ? 'Sembunyikan Info Debug' : 'Tampilkan Info Debug';
         }
         
-        // Load configuration from localStorage if available
+        // Load configuration from localStorage
         function loadConfig() {
             const savedConfig = localStorage.getItem('menuMonitorConfig');
             if (savedConfig) {
@@ -914,7 +883,6 @@
                 document.getElementById('logo-url').value = config.logoUrl;
                 document.getElementById('video-url').value = config.videoUrl;
                 
-                // Apply logo if exists
                 if (config.logoUrl) {
                     const logoElement = document.getElementById('settings-logo');
                     logoElement.innerHTML = '';
@@ -924,16 +892,12 @@
                     logoElement.appendChild(logoImg);
                 }
                 
-                // Apply video if exists
                 if (config.videoUrl) {
-                    const videoIframe = document.querySelector('.video-container iframe');
-                    videoIframe.src = config.videoUrl;
+                    document.querySelector('.video-container iframe').src = config.videoUrl;
                 }
                 
-                // If URL is set, start fetching data
                 if (config.sheetUrl) {
                     fetchData();
-                    // Set up interval for updates
                     setupRefreshInterval();
                 }
             }
@@ -941,10 +905,7 @@
         
         // Setup refresh interval
         function setupRefreshInterval() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
-            
+            if (refreshInterval) clearInterval(refreshInterval);
             refreshInterval = setInterval(fetchData, config.updateInterval * 1000);
             addDebugInfo(`Interval pembaruan diatur ke ${config.updateInterval} detik`);
         }
@@ -952,38 +913,28 @@
         // Save configuration to localStorage
         function saveSheetsConfig() {
             config.sheetUrl = document.getElementById('sheet-url').value;
-            config.updateInterval = parseInt(document.getElementById('update-interval').value);
-            
+            config.updateInterval = Math.max(1, parseInt(document.getElementById('update-interval').value));
             localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
             alert('Konfigurasi Google Sheets berhasil disimpan!');
-            
-            // Start fetching data
             fetchData();
-            
-            // Set up interval for updates
             setupRefreshInterval();
-            
             addDebugInfo('Konfigurasi Google Sheets disimpan');
         }
         
         function saveLogoConfig() {
             const logoUrl = document.getElementById('logo-url').value;
             const logoUpload = document.getElementById('logo-upload').files[0];
-            
             if (logoUpload) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     config.logoUrl = e.target.result;
                     localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
-                    
-                    // Update logo
                     const logoElement = document.getElementById('settings-logo');
                     logoElement.innerHTML = '';
                     const logoImg = document.createElement('img');
                     logoImg.src = e.target.result;
                     logoImg.alt = 'Logo Restoran';
                     logoElement.appendChild(logoImg);
-                    
                     alert('Logo berhasil diubah!');
                     addDebugInfo('Logo diubah dari unggahan file');
                 };
@@ -991,15 +942,12 @@
             } else if (logoUrl) {
                 config.logoUrl = logoUrl;
                 localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
-                
-                // Update logo
                 const logoElement = document.getElementById('settings-logo');
                 logoElement.innerHTML = '';
                 const logoImg = document.createElement('img');
                 logoImg.src = logoUrl;
                 logoImg.alt = 'Logo Restoran';
                 logoElement.appendChild(logoImg);
-                
                 alert('Logo berhasil diubah!');
                 addDebugInfo('Logo diubah dari URL: ' + logoUrl);
             } else {
@@ -1009,49 +957,35 @@
         
         function saveVideoConfig() {
             config.videoUrl = document.getElementById('video-url').value;
-            
             localStorage.setItem('menuMonitorConfig', JSON.stringify(config));
-            
-            // Update video
-            const videoIframe = document.querySelector('.video-container iframe');
-            videoIframe.src = config.videoUrl;
-            
+            document.querySelector('.video-container iframe').src = config.videoUrl;
             alert('Video berhasil diubah!');
             addDebugInfo('Video diubah: ' + config.videoUrl);
         }
         
-        // Function to fetch data from Google Sheets
+        // Fetch data from Google Sheets
         async function fetchData() {
             if (!config.sheetUrl) {
                 updateStatus('disconnected', 'URL Google Sheets belum diatur');
-                console.error('Google Sheets URL belum diatur');
                 return;
             }
             
             updateStatus('loading', 'Memuat data...');
-            addDebugInfo('Memulai fetch data dari Google Sheets');
-            
             try {
-                // Add cache busting parameter to prevent caching
                 const url = config.sheetUrl + (config.sheetUrl.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                addDebugInfo('URL request: ' + url);
-                
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                const response = await fetch(url, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const csvData = await response.text();
-                addDebugInfo('Data CSV diterima, panjang: ' + csvData.length + ' karakter');
+                if (csvData === lastFetchData) {
+                    addDebugInfo('Data tidak berubah, melewati render');
+                    updateStatus('connected', 'Data terhubung');
+                    return;
+                }
                 
-                // Parse CSV data
+                lastFetchData = csvData;
                 const menuData = parseCSV(csvData);
-                addDebugInfo(`Data berhasil diparse: ${menuData.length} menu ditemukan`);
-                
-                // Render menu
                 renderMenu(menuData);
-                
                 updateStatus('connected', 'Data terhubung');
                 updateLastUpdatedTime();
                 
@@ -1059,29 +993,21 @@
                 console.error('Error fetching data:', error);
                 updateStatus('disconnected', 'Koneksi error');
                 addDebugInfo('Error: ' + error.message);
-                alert('Error mengambil data. Pastikan URL Google Sheets benar dan sudah dipublikasikan.');
             }
         }
         
-        // Function to parse CSV data
+        // Parse CSV data
         function parseCSV(csv) {
             const lines = csv.split('\n');
             const result = [];
-            
-            addDebugInfo('Memulai parsing CSV, jumlah baris: ' + lines.length);
-            
-            // Skip header row and process each line
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (line) {
-                    // More robust CSV parsing that handles quotes and commas within values
                     const values = [];
                     let inQuotes = false;
                     let currentValue = '';
-                    
                     for (let j = 0; j < line.length; j++) {
                         const char = line[j];
-                        
                         if (char === '"') {
                             inQuotes = !inQuotes;
                         } else if (char === ',' && !inQuotes) {
@@ -1091,48 +1017,35 @@
                             currentValue += char;
                         }
                     }
-                    
                     values.push(currentValue);
-                    
                     if (values.length >= 3) {
                         const menuItem = {
                             name: values[0].replace(/"/g, '').trim(),
                             stock: parseInt(values[1].replace(/"/g, '').trim()) || 0,
                             status: values[2].replace(/"/g, '').trim().toLowerCase()
                         };
-                        
-                        // Validate status
-                        if (!['tersedia', 'tersisa', 'habis'].includes(menuItem.status)) {
-                            addDebugInfo(`Peringatan: Status tidak valid untuk menu "${menuItem.name}": "${menuItem.status}"`);
-                            continue; // Skip invalid status
+                        if (['tersedia', 'tersisa', 'habis'].includes(menuItem.status)) {
+                            result.push(menuItem);
                         }
-                        
-                        result.push(menuItem);
                     }
                 }
             }
-            
             return result;
         }
         
-        // Function to create or update a menu item element
+        // Create or update a menu item element
         function createMenuItem(menu) {
             const menuItem = document.createElement('div');
             menuItem.className = 'menu-item';
-            menuItem.dataset.name = menu.name; // Use name as key
-            
+            menuItem.dataset.name = menu.name;
             if (menu.status === 'tersisa') {
                 menuItem.classList.add('tersisa');
-                if (menu.stock <= 2) {
-                    menuItem.classList.add('pulse');
-                }
+                if (menu.stock <= 2) menuItem.classList.add('pulse');
             } else if (menu.status === 'habis') {
                 menuItem.classList.add('habis');
             }
-            
             const statusClass = `status-${menu.status}`;
             const stockHtml = menu.status === 'tersisa' ? `<span class="stock-amount">${menu.stock} porsi</span>` : '';
-            
             menuItem.innerHTML = `
                 <div class="menu-name">${menu.name}</div>
                 <div class="menu-status">
@@ -1140,31 +1053,25 @@
                     ${stockHtml}
                 </div>
             `;
-            
             return menuItem;
         }
         
-        // Function to render menu items incrementally
+        // Render menu items incrementally
         function renderMenu(menuData) {
             const menuList = document.getElementById('menu-list');
             const emptyMenuList = document.getElementById('empty-menu-list');
-            
-            // Remove empty messages if data is present
             if (menuData.length > 0) {
                 menuList.querySelector('.empty-menu')?.remove();
                 emptyMenuList.querySelector('.empty-menu')?.remove();
             }
             
-            // Create maps for quick lookup
             const newDataMap = new Map(menuData.map(item => [item.name, item]));
             const prevDataMap = new Map(previousMenuData.map(item => [item.name, item]));
             
-            // Function to update or add to a list
             function updateList(listElement, filterFn, emptyMessageHtml) {
                 const currentItems = Array.from(listElement.querySelectorAll('.menu-item'));
                 const currentNames = new Set(currentItems.map(item => item.dataset.name));
                 
-                // Remove items not in new data or not matching filter
                 currentItems.forEach(item => {
                     const name = item.dataset.name;
                     const newItem = newDataMap.get(name);
@@ -1173,7 +1080,6 @@
                     }
                 });
                 
-                // Add or update items
                 menuData.filter(filterFn).forEach(menu => {
                     let item = listElement.querySelector(`[data-name="${menu.name}"]`);
                     const isNew = !item;
@@ -1184,14 +1090,43 @@
                         listElement.appendChild(item);
                         item.classList.add('new-item');
                     } else if (hasChanged) {
-                        const newItem = createMenuItem(menu);
-                        listElement.replaceChild(newItem, item);
-                        newItem.classList.add('updated');
-                        item = newItem;
+                        item.classList.remove('tersisa', 'habis', 'pulse');
+                        if (menu.status === 'tersisa') {
+                            item.classList.add('tersisa');
+                            if (menu.stock <= 2) item.classList.add('pulse');
+                            item.style.background = '#fffbf0';
+                            item.style.borderLeftColor = '#EAA221';
+                        } else if (menu.status === 'habis') {
+                            item.classList.add('habis');
+                            item.style.background = '#fef0f0';
+                            item.style.borderLeftColor = '#e74c3c';
+                        } else {
+                            item.style.background = '#f0f9f0';
+                            item.style.borderLeftColor = '#2ecc71';
+                        }
+                        
+                        const statusSpan = item.querySelector('.menu-status span');
+                        statusSpan.className = `status-${menu.status}`;
+                        statusSpan.textContent = menu.status.charAt(0).toUpperCase() + menu.status.slice(1);
+                        
+                        let stockSpan = item.querySelector('.stock-amount');
+                        if (menu.status === 'tersisa') {
+                            if (stockSpan) {
+                                stockSpan.textContent = `${menu.stock} porsi`;
+                            } else {
+                                stockSpan = document.createElement('span');
+                                stockSpan.className = 'stock-amount';
+                                stockSpan.textContent = `${menu.stock} porsi`;
+                                item.querySelector('.menu-status').appendChild(stockSpan);
+                            }
+                        } else if (stockSpan) {
+                            stockSpan.remove();
+                        }
+                        
+                        item.classList.add('updated');
                     }
                 });
                 
-                // Show empty message if no items
                 if (listElement.querySelectorAll('.menu-item').length === 0) {
                     if (!listElement.querySelector('.empty-menu')) {
                         listElement.innerHTML = emptyMessageHtml;
@@ -1199,62 +1134,37 @@
                 }
             }
             
-            // Update menu-list (tersedia and tersisa)
             updateList(
                 menuList,
                 menu => menu.status === 'tersedia' || menu.status === 'tersisa',
-                `
-                    <div class="empty-menu">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h3>Tidak Ada Menu Tersedia</h3>
-                        <p>Semua menu sedang habis</p>
-                    </div>
-                `
+                `<div class="empty-menu"><i class="fas fa-exclamation-circle"></i><h3>Tidak Ada Menu Tersedia</h3><p>Semua menu sedang habis</p></div>`
             );
             
-            // Update empty-menu-list (habis)
             updateList(
                 emptyMenuList,
                 menu => menu.status === 'habis',
-                `
-                    <div class="empty-menu">
-                        <i class="fas fa-check-circle"></i>
-                        <h3>Semua menu tersedia</h3>
-                        <p>Tidak ada menu yang habis saat ini</p>
-                    </div>
-                `
+                `<div class="empty-menu"><i class="fas fa-check-circle"></i><h3>Semua menu tersedia</h3><p>Tidak ada menu yang habis saat ini</p></div>`
             );
             
-            // Update previous data for next render
             previousMenuData = menuData;
         }
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            // Set up event listeners
             settingsLogo.addEventListener('click', toggleSettings);
             closeBtn.addEventListener('click', closeSettings);
             saveSheetsBtn.addEventListener('click', saveSheetsConfig);
             saveLogoBtn.addEventListener('click', saveLogoConfig);
             saveVideoBtn.addEventListener('click', saveVideoConfig);
             debugToggle.addEventListener('click', toggleDebugInfo);
+            tabs.forEach(tab => tab.addEventListener('click', switchTab));
             
-            // Tab switching
-            tabs.forEach(tab => {
-                tab.addEventListener('click', switchTab);
-            });
-            
-            // Update time immediately and then every second
             updateTime();
             setInterval(updateTime, 1000);
-            
-            // Load saved configuration
             loadConfig();
             
-            // For demo purposes, if no config is set, use sample data
             if (!config.sheetUrl) {
                 updateStatus('disconnected', 'Google Sheets belum dikonfigurasi');
-                // Sample menu data for demonstration
                 const sampleData = [
                     { name: "Nasi Goreng Spesial", stock: 12, status: "tersedia" },
                     { name: "Ayam Bakar Madu", stock: 0, status: "habis" },
@@ -1265,7 +1175,6 @@
                     { name: "Teh Manis", stock: 15, status: "tersedia" },
                     { name: "Jus Alpukat", stock: 0, status: "habis" }
                 ];
-                
                 renderMenu(sampleData);
             }
         });
